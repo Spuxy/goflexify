@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	"errors"
 	"github.com/Spuxy/Goflexify/model"
-
 	"github.com/Spuxy/Goflexify/utils/reader"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -19,17 +19,21 @@ type DbHandler struct {
 	Db *gorm.DB
 }
 
-func (d *DbHandler) SelectUser(u *model.User) model.Users {
+func (d *DbHandler) GetAllUsers(u *model.User) model.Users {
+
 	return []model.User{{}, {}}
 }
 func (d *DbHandler) InsertUser(u *model.User) error {
 	var existsUser model.User
-	d.Db.First(&existsUser, u.ID)
+	d.Db.Raw("SELECT * FROM users WHERE id = ?", u.ID).Scan(&existsUser)
 	if existsUser.ID > 0 {
-		log.Fatalln("gg")
+		return errors.New("Database could not create the user")
 	}
-	r := d.Db.Create(u)
-	return r.Error
+	rslt := d.Db.Create(&u)
+	if rslt.Error != nil {
+		return errors.New("Database could not create the user")
+	}
+	return nil
 }
 func (d *DbHandler) UpdateUser(u *model.User) error {
 	return nil

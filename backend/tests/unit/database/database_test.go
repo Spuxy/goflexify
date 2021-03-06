@@ -8,12 +8,11 @@ import (
 )
 
 func TestInsert(t *testing.T) {
-	e := "Spuxy"
 	user := model.User{
 		ID:    2,
 		Name:  "Spuxy",
-		Email: &e,
-		Age:   25,
+		Email: "Spuxy@seznam.cz",
+		Age:   "2",
 	}
 
 	conn, err := database.Connect()

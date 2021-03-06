@@ -20,3 +20,35 @@ Pro spusteni virtualizace je potreba byt v root projektu
 
 Nastaveni dockeru
 Environment vars jsou pouze pro verzovani, v prod/devu se pouziva dotfile/ini
+
+### DATABASE
+
+Projekt obsahuje
+
+1. ImmuDB (pro transakce persistenni/immutable)
+2. Postgres (Relacni DB)
+3. Redis (Cache / jako key-value store)
+
+Pripojeni k databazi 💯
+v local:
+sudo -u postgres psql postgres
+
+v containeru:
+postgres -U postgres
+
+### CICDE
+
+Pipeliny jedou pres GitHub
+Pouze pro lint a test
+
+### TEST
+
+Testy nejsou implementovany (DDD neni aplikovano)
+TODO: Unit, Acceptance
+
+### REST-API
+
+volani pomoci souboru s priponou \*.http
+
+TODO:
+projektovy config pro IDE, vim
