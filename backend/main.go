@@ -23,6 +23,7 @@ func main() {
 	fmt.Printf("%T", app)
 	router.Factory(app)
 	app.Get("/", func(c *fiber.Ctx) error {
+		fmt.Println("test")
 		return c.SendString("Hello, World 👋!")
 	})
 
