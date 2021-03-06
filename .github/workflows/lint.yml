@@ -13,6 +13,7 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: "1.15.7"
+      - run: cd ../../backend && go mod download
       - run: go version
 
       - name: lint
