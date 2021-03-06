@@ -1,0 +1,48 @@
+version: "3.9"
+
+services:
+  database:
+    image: postgres:12.2-alpine
+    container_name: "database"
+    ports:
+      - "5435:5432"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks: 
+      - backend
+    volumes: 
+      - database_postgres:/var/lib/postgresql/data
+  immudb:
+    image: codenotary/immudb:v0.8.0
+    container_name: "immudb"
+    ports:
+      - "3324:3323"
+      - "9497:9497"
+    networks:
+      - backend
+  web:
+    build:
+      context: ./backend
+      dockerfile : ./docker/Dockerfile
+    container_name: "rest-api"
+    environment:
+      DB_USERNAME: "postgres"
+      DB_USER: "postgres"
+      DB_PASSWORD: "postgres"
+      DB_DB: "postgres"
+      DB_HOST: "database"
+      DB_TABLE: "postgres"
+      DB_PORT: "5432"
+    ports:
+      - "5005:5005"
+    depends_on: 
+      - database
+    networks: 
+      - backend
+networks: 
+  backend:
+    driver: bridge
+volumes:
+  database_postgres:
