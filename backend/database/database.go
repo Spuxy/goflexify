@@ -45,14 +45,24 @@ func Connect() (*gorm.DB, error) {
 	}
 
 	db, err := gorm.Open(postgres.Open(fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Shanghai", cfg.DbHost, cfg.DbUser, cfg.DbPassword, cfg.DbDatabase, cfg.DbPort)), &gorm.Config{})
-	db.AutoMigrate(&model.User{})
+
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	migrate(db)
+
 	return db, err
 }
 func NewHandler(db *gorm.DB) *DbHandler {
 	return &DbHandler{
 		Db: db,
+	}
+}
+
+func migrate(db *gorm.DB) {
+	err := db.AutoMigrate(&model.User{})
+	if err != nil {
+		log.Fatal("Something went wrong with migration")
 	}
 }

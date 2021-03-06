@@ -1,6 +1,7 @@
 package router
 
 import (
+	"log"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,6 +13,10 @@ func Factory(r *fiber.App) {
 		return c.SendString(os.Getenv("DB_DB"))
 	})
 
-	r.Listen(":5005")
+	err := r.Listen(":5005")
+
+	if err != nil {
+		log.Fatal("Something went wront with httpServer")
+	}
 
 }
