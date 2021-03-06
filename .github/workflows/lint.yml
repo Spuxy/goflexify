@@ -13,11 +13,10 @@ jobs:
       - uses: actions/setup-go@v2
         with:
           go-version: "1.15.7"
-      - run: cd ../../backend && go mod download
       - run: go version
 
       - name: lint
         run:
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.26.0
 
-          golangci-lint run
+          cd ./backend && golangci-lint run
