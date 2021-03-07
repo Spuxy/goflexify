@@ -3,8 +3,8 @@ Method: POST
 Content-Type: application/json
 
 {
-  "id":2
-  "name": "Veronika"
-  "email": "verca@seznam.cz"
+  "name": "Test123"
+  "email": "Test@seznam.cz"
   "age": 24
+  "password": "hello"
 }

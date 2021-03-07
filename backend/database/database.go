@@ -23,18 +23,23 @@ func (d *DbHandler) GetAllUsers(u *model.User) model.Users {
 
 	return []model.User{{}, {}}
 }
-func (d *DbHandler) InsertUser(u *model.User) error {
+
+func (d *DbHandler) InsertUser(u model.User) error {
 	var existsUser model.User
+
 	d.Db.Raw("SELECT * FROM users WHERE id = ?", u.ID).Scan(&existsUser)
 	if existsUser.ID > 0 {
 		return errors.New("Database could not create the user")
 	}
+
 	rslt := d.Db.Create(&u)
 	if rslt.Error != nil {
 		return errors.New("Database could not create the user")
 	}
+
 	return nil
 }
+
 func (d *DbHandler) UpdateUser(u *model.User) error {
 	return nil
 }
