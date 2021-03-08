@@ -10,7 +10,6 @@ import (
 )
 
 func main() {
-
 	db, err := database.Connect()
 	if err != nil {
 		log.Fatal(err)
@@ -19,5 +18,4 @@ func main() {
 	controller := controller.NewController(dbHandler)
 	app := fiber.New()
 	router.Factory(app, controller)
-
 }

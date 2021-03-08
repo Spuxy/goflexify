@@ -2,28 +2,24 @@ package router
 
 import (
 	"log"
-	"os"
-	"time"
 
 	"github.com/Spuxy/Goflexify/controller"
 	"github.com/gofiber/fiber/v2"
 )
 
 func Factory(r *fiber.App, c *controller.Controller) {
-	r.Get("/user/:id", func(c *fiber.Ctx) error {
-		return c.SendString(os.Getenv("DB_DB"))
-	})
-	r.Get("/users", c.List)
+	// [#] GROUPS [#]
+	api := r.Group("/api")
 
-	r.Get("/login", c.Login)
-	r.Post("/user", c.Register)
+	// [#] VERSIONS [#]
+	v1 := api.Group("/v1")
 
-	r.Get("/hello", test(time.Now().Unix()))
-	r.Get("/wat", func(c *fiber.Ctx) error {
-		return c.SendString("Something went wrong 😢")
-	})
-	r.Post("/room", c.CreateRoom)
-	err := r.Listen(":5006")
+	// [#] USERS [#]
+	v1.Get("/user/:id", c.Info)
+	v1.Post("/login", c.Login)
+	v1.Post("/logout", c.Logout)
+	v1.Post("/user", c.Register)
+	err := r.Listen(":5005")
 	if err != nil {
 		log.Fatal("Something went wront with httpServer", err)
 	}

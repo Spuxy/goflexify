@@ -40,6 +40,20 @@ func (d *DbHandler) InsertUser(u model.User) error {
 	return nil
 }
 
+func (d *DbHandler) GetUserById(id int) model.User {
+	var user model.User
+	d.Db.First(&user, "id = ?", id)
+	return user
+}
+func (d *DbHandler) GetUser(u model.User) model.User {
+	var newUser model.User
+	d.Db.First(newUser, u.ID)
+	if newUser.ID < 1 {
+		log.Fatal("wtf")
+	}
+	return newUser
+}
+
 func (d *DbHandler) UpdateUser(u *model.User) error {
 	return nil
 }
@@ -74,4 +88,10 @@ func migrate(db *gorm.DB) {
 	if err != nil {
 		log.Fatal("Something went wrong with migration")
 	}
+}
+
+func (d *DbHandler) GetUserByEmailPassword(email, password string) model.User {
+	var user model.User
+	d.Db.Where("email = ? AND password = ?", email, password).Find(&user)
+	return user
 }

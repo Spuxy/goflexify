@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"log"
 	"strconv"
 	"time"
 
@@ -23,24 +22,33 @@ var TokenName string = "AccessToken"
 func NewController(db *database.DbHandler) *Controller {
 	return &Controller{db}
 }
-func (c *Controller) List(http *fiber.Ctx) error {
-	return http.SendString("HELLO WORLD")
+
+func (c *Controller) Info(http *fiber.Ctx) error {
+	cookie := http.Cookies(TokenName)
+	token, err := checkAuthorization(cookie)
+	if err != nil {
+		http.Status(fiber.StatusUnauthorized)
+		return http.JSON(fiber.Map{
+			"message": "unauthorized",
+		})
+	}
+	claims := token.Claims
+	_ = http.Params("id")
+	return http.JSON(claims)
 }
 
 func (c *Controller) Register(http *fiber.Ctx) error {
-	time.Sleep(time.Second * 20)
 	var user model.User
-	log.Println(http.Body())
 	http.BodyParser(&user)
 	password, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
 	if err != nil {
 		fiber.NewError(fiber.StatusBadRequest, "Could not hash yout password :(")
 	}
 
-	user.Password = password
+	user.Password = string(password)
 	rslt := c.DB.InsertUser(user)
 	if rslt != nil {
-		fiber.NewError(fiber.StatusBadRequest, "Something went wrong 😢")
+		fiber.NewError(fiber.StatusForbidden, "could not create the account 😢")
 	}
 
 	http.SendStatus(fiber.StatusOK)
@@ -49,10 +57,18 @@ func (c *Controller) Register(http *fiber.Ctx) error {
 
 func (c *Controller) Login(http *fiber.Ctx) (err error) {
 	var user model.User
-
 	err = http.BodyParser(&user)
 	if err != nil {
+		fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+
+	foundUser := c.DB.GetUserByEmailPassword(user.Email, user.Password)
+	if foundUser.ID <= 0 {
 		fiber.NewError(fiber.StatusBadRequest, "Something went wrong 😢")
+	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(user.Password)); err != nil {
+		fiber.NewError(fiber.StatusForbidden, "could not hashed your password 😢")
 	}
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
@@ -61,7 +77,7 @@ func (c *Controller) Login(http *fiber.Ctx) (err error) {
 	})
 	token, err := claims.SignedString([]byte(SECRETKEY))
 	if err != nil {
-		fiber.NewError(fiber.StatusBadRequest, "Something went wrong 😢")
+		fiber.NewError(fiber.StatusBadRequest, "could not encrypt the key of jwt 😢")
 		return
 	}
 	http.Cookie(&fiber.Cookie{
@@ -75,10 +91,24 @@ func (c *Controller) Login(http *fiber.Ctx) (err error) {
 	})
 }
 
-func (c *Controller) CreateRoom(http *fiber.Ctx) error {
-	tkn := http.Cookies("AccessToken")
-	log.Println(tkn)
-	return nil
+func (c *Controller) Logout(r *fiber.Ctx) error {
+	cookie := fiber.Cookie{
+		Name:     TokenName,
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour),
+		HTTPOnly: true,
+	}
+	r.Cookie(&cookie)
+	return r.JSON(fiber.Map{
+		"message": "success",
+	})
+}
+
+func checkAuthorization(cookie string) (*jwt.Token, error) {
+	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(SECRETKEY), nil
+	})
+	return token, err
 }
 
 // LIP UDELAT VYHAZOVANI CHYB !
