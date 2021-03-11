@@ -1,0 +1,10 @@
+URL: http://localhost:5005/user
+Method: POST
+Content-Type: application/json
+
+{
+  "name": "Test123"
+  "email": "Test@seznam.cz"
+  "age": 24
+  "password": "hello"
+}

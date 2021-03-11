@@ -14,12 +14,12 @@ import (
 const SECRETKEY string = "siliconvalley"
 
 type Controller struct {
-	DB *database.DbHandler
+	UserRepository database.IUserRepository
 }
 
 var TokenName string = "AccessToken"
 
-func NewController(db *database.DbHandler) *Controller {
+func NewController(db database.IUserRepository) *Controller {
 	return &Controller{db}
 }
 
@@ -46,7 +46,7 @@ func (c *Controller) Register(http *fiber.Ctx) error {
 	}
 
 	user.Password = string(password)
-	rslt := c.DB.InsertUser(user)
+	rslt := c.UserRepository.CreateUser(user)
 	if rslt != nil {
 		fiber.NewError(fiber.StatusForbidden, "could not create the account 😢")
 	}
@@ -62,8 +62,8 @@ func (c *Controller) Login(http *fiber.Ctx) (err error) {
 		fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	foundUser := c.DB.GetUserByEmailPassword(user.Email, user.Password)
-	if foundUser.ID <= 0 {
+	foundUser, err := c.UserRepository.GetUserByEmailPassword(user.Email, user.Password)
+	if err != nil {
 		fiber.NewError(fiber.StatusBadRequest, "Something went wrong 😢")
 	}
 

@@ -7,8 +7,6 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-const filename string = "properties.ini"
-
 type Config struct {
 	DbPassword string
 	DbDatabase string
@@ -18,17 +16,27 @@ type Config struct {
 	DbTable    string
 	DbPort     string
 }
+type Reader interface {
+	ReadGivenFileIntoMap() (Config, error)
+}
+type ReaderFromINI struct {
+	filename string
+}
 
-func ReadGivenFileIntoMap() (config Config, err error) {
-	_, err = os.Stat(filename)
+func (r *ReaderFromINI) ReadGivenFileIntoMap() (config Config, err error) {
+	_, err = os.Stat(r.filename)
 	if err != nil {
-		log.Fatal("Config file is missing: ", filename)
+		log.Fatal("Config file is missing: ", r.filename)
 		return config, nil
 	}
 
-	if _, err = toml.DecodeFile(filename, &config); err != nil {
+	if _, err = toml.DecodeFile(r.filename, &config); err != nil {
 		log.Fatal(err)
 		return config, err
 	}
 	return config, nil
+}
+
+func CreateReader(filename string) *ReaderFromINI {
+	return &ReaderFromINI{filename: filename}
 }

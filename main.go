@@ -21,8 +21,5 @@ func main() {
 	app := fiber.New()
 	fmt.Printf("%T", app)
 	router.Factory(app, controller)
-	app.Get("/", func(c *fiber.Ctx) error {
-		return c.SendString("Hello, World 👋!")
-	})
 
 }
