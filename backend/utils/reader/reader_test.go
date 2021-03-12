@@ -6,12 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type MockReader struct {
-	ownConfig Config
-	ownError  error
-	filename  string
-}
-
 const file string = "properties_test.ini"
 
 func TestWrongConfigFile(t *testing.T) {

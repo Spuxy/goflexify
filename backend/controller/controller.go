@@ -37,7 +37,12 @@ func (c *Controller) Info(http *fiber.Ctx) error {
 
 func (c *Controller) Register(http *fiber.Ctx) error {
 	var user model.User
-	http.BodyParser(&user)
+
+	err := http.BodyParser(&user)
+	if err != nil {
+		return c.UserService.Error(fiber.StatusBadRequest, "we could not process your request")
+	}
+
 	password, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
 	if err != nil {
 		c.UserService.Error(fiber.StatusForbidden, "Could not hash yout password :(")
