@@ -14,5 +14,8 @@ jobs:
         with:
           go-version: "1.15.7"
 
-      - name: Unit
-        run: cd ./backend/tests/unit/ && go test ./...
+      - name: Unit service
+        run: cd ./backend/service/ && go test
+
+      - name: Unit reader
+        run: cd ./backend/utils/reader/ && go test
