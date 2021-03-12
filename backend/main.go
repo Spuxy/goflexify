@@ -6,6 +6,7 @@ import (
 	"github.com/Spuxy/Goflexify/controller"
 	"github.com/Spuxy/Goflexify/database"
 	"github.com/Spuxy/Goflexify/router"
+	"github.com/Spuxy/Goflexify/service"
 	"github.com/Spuxy/Goflexify/utils/reader"
 	"github.com/gofiber/fiber/v2"
 )
@@ -17,7 +18,9 @@ func main() {
 		log.Fatal(err)
 	}
 	userRepository := database.NewUserRepository(db)
-	controller := controller.NewController(userRepository)
+	userService := service.NewUserService(userRepository)
+	controller := controller.NewController(userService)
 	app := fiber.New()
-	router.Factory(app, controller)
+	router2 := router.NewBackendRouter()
+	router2.Factory(app, controller)
 }

@@ -1,7 +1,7 @@
 package reader
 
 import (
-	"log"
+	"errors"
 	"os"
 
 	"github.com/BurntSushi/toml"
@@ -26,12 +26,10 @@ type ReaderFromINI struct {
 func (r *ReaderFromINI) ReadGivenFileIntoMap() (config Config, err error) {
 	_, err = os.Stat(r.filename)
 	if err != nil {
-		log.Fatal("Config file is missing: ", r.filename)
-		return config, nil
+		return config, errors.New("Config file is missing")
 	}
 
 	if _, err = toml.DecodeFile(r.filename, &config); err != nil {
-		log.Fatal(err)
 		return config, err
 	}
 	return config, nil

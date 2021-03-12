@@ -4,28 +4,26 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Spuxy/Goflexify/database"
 	"github.com/Spuxy/Goflexify/model"
+	"github.com/Spuxy/Goflexify/service"
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 )
 
-const SECRETKEY string = "siliconvalley"
-
 type Controller struct {
-	UserRepository database.IUserRepository
+	UserService service.Servicer
 }
 
 var TokenName string = "AccessToken"
 
-func NewController(db database.IUserRepository) *Controller {
-	return &Controller{db}
+func NewController(service service.Servicer) *Controller {
+	return &Controller{service}
 }
 
 func (c *Controller) Info(http *fiber.Ctx) error {
 	cookie := http.Cookies(TokenName)
-	token, err := checkAuthorization(cookie)
+	token, err := c.UserService.CheckAuthorization(cookie)
 	if err != nil {
 		http.Status(fiber.StatusUnauthorized)
 		return http.JSON(fiber.Map{
@@ -42,13 +40,13 @@ func (c *Controller) Register(http *fiber.Ctx) error {
 	http.BodyParser(&user)
 	password, err := bcrypt.GenerateFromPassword([]byte(user.Password), 12)
 	if err != nil {
-		fiber.NewError(fiber.StatusBadRequest, "Could not hash yout password :(")
+		c.UserService.Error(fiber.StatusForbidden, "Could not hash yout password :(")
 	}
 
 	user.Password = string(password)
-	rslt := c.UserRepository.CreateUser(user)
+	rslt := c.UserService.Create(user)
 	if rslt != nil {
-		fiber.NewError(fiber.StatusForbidden, "could not create the account 😢")
+		c.UserService.Error(fiber.StatusForbidden, "could not create the account 😢")
 	}
 
 	http.SendStatus(fiber.StatusOK)
@@ -59,26 +57,25 @@ func (c *Controller) Login(http *fiber.Ctx) (err error) {
 	var user model.User
 	err = http.BodyParser(&user)
 	if err != nil {
-		fiber.NewError(fiber.StatusBadRequest, err.Error())
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
-	foundUser, err := c.UserRepository.GetUserByEmailPassword(user.Email, user.Password)
+	foundUser, err := c.UserService.GetUser(user.Email, user.Password)
 	if err != nil {
-		fiber.NewError(fiber.StatusBadRequest, "Something went wrong 😢")
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(foundUser.Password), []byte(user.Password)); err != nil {
-		fiber.NewError(fiber.StatusForbidden, "could not hashed your password 😢")
+		return fiber.NewError(fiber.StatusForbidden, "could not hashed your password 😢")
 	}
 
 	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
 		Issuer:    strconv.Itoa(int(user.ID)),
 		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
 	})
-	token, err := claims.SignedString([]byte(SECRETKEY))
+	token, err := claims.SignedString([]byte(c.UserService.GetKey()))
 	if err != nil {
-		fiber.NewError(fiber.StatusBadRequest, "could not encrypt the key of jwt 😢")
-		return
+		return fiber.NewError(fiber.StatusBadRequest, "could not encrypt the key of jwt 😢")
 	}
 	http.Cookie(&fiber.Cookie{
 		Name:     TokenName,
@@ -102,13 +99,6 @@ func (c *Controller) Logout(r *fiber.Ctx) error {
 	return r.JSON(fiber.Map{
 		"message": "success",
 	})
-}
-
-func checkAuthorization(cookie string) (*jwt.Token, error) {
-	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(SECRETKEY), nil
-	})
-	return token, err
 }
 
 // LIP UDELAT VYHAZOVANI CHYB !

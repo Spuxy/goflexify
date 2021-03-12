@@ -2,6 +2,8 @@ package reader
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type MockReader struct {
@@ -10,10 +12,15 @@ type MockReader struct {
 	filename  string
 }
 
-func (m *MockReader) ReadGivenFileIntoMap() (Config, error) {
-	return m.ownConfig, m.ownError
-}
+const file string = "properties_test.ini"
 
-func TestHello(t *testing.T) {
-	mock := MockReader{}
+func TestWrongConfigFile(t *testing.T) {
+	reader := CreateReader("test.ini")
+	_, err := reader.ReadGivenFileIntoMap()
+	assert.NotNil(t, err, "wrong file, it does not exist")
+}
+func TestCorrectConfigFile(t *testing.T) {
+	reader := CreateReader(file)
+	_, err := reader.ReadGivenFileIntoMap()
+	assert.Nil(t, err, "wrong file, it does not exist")
 }
