@@ -10,10 +10,6 @@ import (
 	"gorm.io/gorm"
 )
 
-type DBHandler struct {
-	Db *gorm.DB
-}
-
 func Connect(r reader.Reader) (*gorm.DB, error) {
 	cfg, err := r.ReadGivenFileIntoMap()
 	if err != nil {
@@ -29,12 +25,6 @@ func Connect(r reader.Reader) (*gorm.DB, error) {
 	migrate(db)
 
 	return db, err
-}
-
-func NewDBHandler(db *gorm.DB) *DBHandler {
-	return &DBHandler{
-		Db: db,
-	}
 }
 
 func migrate(db *gorm.DB) {

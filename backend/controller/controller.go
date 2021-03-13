@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/Spuxy/Goflexify/cache"
 	"github.com/Spuxy/Goflexify/model"
 	"github.com/Spuxy/Goflexify/service"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -13,15 +14,27 @@ import (
 
 type Controller struct {
 	UserService service.Servicer
+	Cache       cache.Cacher
 }
 
 var TokenName string = "AccessToken"
 
-func NewController(service service.Servicer) *Controller {
-	return &Controller{service}
+func NewController(service service.Servicer, cache cache.Cacher) *Controller {
+	return &Controller{
+		UserService: service,
+		Cache:       cache,
+	}
 }
 
 func (c *Controller) Info(http *fiber.Ctx) error {
+	val, err := c.Cache.Get("hello")
+	if err != nil {
+		http.Status(fiber.StatusBadRequest)
+		return http.JSON(fiber.Map{
+			"message": "zkouska",
+		})
+	}
+	return http.SendString(string(val))
 	cookie := http.Cookies(TokenName)
 	token, err := c.UserService.CheckAuthorization(cookie)
 	if err != nil {
